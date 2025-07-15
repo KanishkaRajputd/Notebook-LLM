@@ -1,6 +1,11 @@
+# Setup SQLite3 compatibility for Streamlit Cloud deployment
+from utils.db_compatibility import setup_sqlite3_compatibility
+setup_sqlite3_compatibility()
+
 import streamlit as st
 import chromadb
 from chromadb.config import Settings
+import os
 
 
 def clear_chroma_db(collection_name=None):
@@ -16,7 +21,20 @@ def clear_chroma_db(collection_name=None):
     """
     try:
         persist_directory = "./chrome_store"
-        chroma_client = chromadb.Client(Settings(persist_directory=persist_directory))
+        
+        # Try to create the directory if it doesn't exist
+        try:
+            os.makedirs(persist_directory, exist_ok=True)
+        except:
+            pass
+        
+        # Use more compatible ChromaDB configuration
+        try:
+            chroma_client = chromadb.PersistentClient(path=persist_directory)
+        except Exception as e:
+            # Fallback to in-memory client if persistent storage fails
+            print(f"Warning: Persistent storage failed, using in-memory client: {e}")
+            chroma_client = chromadb.Client()
         
         if collection_name:
             # Clear specific collection
@@ -65,7 +83,20 @@ def get_chroma_collection(collection_name, persist_directory="./chrome_store"):
     """
     print(f"Collection name: {collection_name}")
     try:
-        chroma_client = chromadb.Client(Settings(persist_directory=persist_directory))
+        # Try to create the directory if it doesn't exist
+        try:
+            os.makedirs(persist_directory, exist_ok=True)
+        except:
+            pass
+        
+        # Use more compatible ChromaDB configuration
+        try:
+            chroma_client = chromadb.PersistentClient(path=persist_directory)
+        except Exception as e:
+            # Fallback to in-memory client if persistent storage fails
+            print(f"Warning: Persistent storage failed, using in-memory client: {e}")
+            chroma_client = chromadb.Client()
+        
         collection = chroma_client.get_or_create_collection(name=collection_name)
         return collection
     except Exception as e:

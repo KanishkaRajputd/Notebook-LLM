@@ -9,7 +9,7 @@ def get_openai_client():
         OpenAI: OpenAI client instance
     """
     try:
-        api_key = st.secrets["OPENAI_KEY"]
+        api_key = st.secrets["OpenAI_KEY"]
         return OpenAI(api_key=api_key)
     except Exception as e:
         st.error(f"Error initializing OpenAI client: {str(e)}")
